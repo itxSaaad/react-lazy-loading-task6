@@ -1,3 +1,5 @@
+import { Suspense, lazy } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import {
   Route,
   RouterProvider,
@@ -5,19 +7,37 @@ import {
   createRoutesFromElements,
 } from 'react-router-dom';
 
-import Layout from './components/Layout';
+import ErorrFallback from './components/ErrorFallback';
 import Home from './components/Home';
-import Admin from './components/Admin';
+import Layout from './components/Layout';
+import SkeletonAdmin from './components/skeletons/SkeletonAdmin';
+
+const Admin = lazy(() => import('./components/Admin'));
 
 function App() {
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
-        <Route path="admin" element={<Admin />} />
+        <Route
+          path="admin"
+          element={
+            <ErrorBoundary
+              FallbackComponent={ErorrFallback}
+              onReset={() => () => (window.location.href = '/')}
+            >
+              <Suspense fallback={<SkeletonAdmin />}>
+                <Admin />
+              </Suspense>
+            </ErrorBoundary>
+          }
+        />
       </Route>
     )
   );
+
+  // const navigate = useNavigate();
+
   return <RouterProvider router={router} />;
 }
 
